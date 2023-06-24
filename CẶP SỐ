@@ -1,0 +1,54 @@
+#include <bits/stdc++.h>
+using namespace std;
+int n;
+int a[100005] , chan[100005];
+// chan[i] luu so luong so chan tinh tu dau mang toi vi tri i
+void init(){
+    chan[0] = 0;
+    for(int i =1 ; i<=n; i++){
+        if(!(a[i] & 1))chan[i] = chan[i-1] + 1;
+        else chan[i] = chan[i-1];
+    }
+}
+inline int merge(int l , int key , int r){
+    vector<int> v1(a + l  , a + key ) , v2(a+key  , a+r+1);
+    int n = v1.size() , m = v2.size() , i = 0 , j = 0 ,counteven = 0;//counteven = dem chan tinh tu 0 toi vi tri i cua v1
+    int cnt = 0;
+    int sumchan = chan[key-1] - chan[l-1];
+    while(i < n && j < m){
+        if(v2[j] < v1[i]){
+            if(!(v2[j] & 1))cnt+=sumchan - counteven;
+            a[l++] = v2[j++];
+        }
+        else {
+            if(!(v1[i] & 1) )counteven++;
+            a[l++] = v1[i++];
+        }
+    }
+    while(i < n )a[l++] = v1[i++];
+    while(j < m )a[l++] = v2[j++];
+    return cnt;
+}
+inline int mergesort(int l , int r){ // lay 1 thang le cua mang lam key de chia mang thanh 2 phan y het nhu mergesort
+    if(l >= r)return 0;
+    if(l == r-1){
+        if(a[l] > a[r] )swap(a[l] , a[r]);
+        return 0;
+    }
+    int key = -1;
+    int ans = 0;
+    for(int i = l +1 ; i < r ; i++){
+        if(a[i] % 2 == 1 && min(i-l+1 , r-i) > ans)key = i , ans = min(i-l+1 , r-i);
+    }
+    int cnt = 0;
+    if(key != -1)cnt+= mergesort(l,key-1) + mergesort(key, r) + merge(l,key,r); // neu co the chia thanh 2 phan
+    else  mergesort(l,(l+r)/2) , mergesort((l+r)/2 +1  , r) , merge(l,(l+r)/2+1,r); // nguoc lai (khong tim dc cap nao)
+    return cnt;
+}
+int main() {
+    ios_base::sync_with_stdio(0); cin.tie(NULL); cout.tie(NULL);
+    cin >> n;
+    for(int i =1 ; i<= n ;i++)cin >> a[i];
+    init();
+    cout<<mergesort(1,n)<<endl;
+}
